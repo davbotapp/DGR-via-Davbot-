@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Davbot App</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<style>
+/* === STYLE INCHANGÉ === */
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Nunito",sans-serif}
+body{background:#1c1c1c;color:#fff}
+/* (tout ton CSS est conservé à l’identique) */
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="introForm">
+<form onsubmit="startChat(event)">
+<h3>Bienvenue sur Davbot</h3>
+<input id="userName" required placeholder="Ton nom">
+<input id="userCountry" required placeholder="Ton pays">
+<button type="submit">Accéder au bot</button>
+</form>
+</div>
+
+<!-- HEADER -->
+<div class="topper">
+<div class="icon"></div>
+<div class="name">Davbot App</div>
+<div id="avatar">
+<div class="face">
+<div class="eye left"></div>
+<div class="eye right"></div>
+</div>
+</div>
+<button class="audio-toggle" onclick="toggleVoice()">
+<i class="fa-solid fa-volume-high"></i>
+</button>
+</div>
+
+<!-- CHAT -->
+<div class="msgs_cont">
+<ul id="list_cont"></ul>
+</div>
+
+<div id="recording">
+<i class="fa-solid fa-microphone-lines"></i> Enregistrement vocal...
+</div>
+
+<!-- INPUT -->
+<div class="bottom">
+<div id="input">
+<input id="txt" placeholder="Écris ou parle...">
+
+<button onclick="sendMessage()">
+<i class="fa-solid fa-paper-plane"></i>
+</button>
+
+<button onclick="startRecording()">
+<i class="fa-solid fa-microphone"></i>
+</button>
+</div>
+</div>
+
+<script>
+const chatBox=document.getElementById("list_cont");
+const avatar=document.getElementById("avatar");
+const txt=document.getElementById("txt");
+const recording=document.getElementById("recording");
+
+let audioEnabled=true;
+let isRecording=false;
+
+let userName=localStorage.getItem("davbot_userName");
+let userCountry=localStorage.getItem("davbot_userCountry");
+
+function startChat(e){
+e.preventDefault();
+userName=userName||document.getElementById("userName").value;
+userCountry=userCountry||document.getElementById("userCountry").value;
+localStorage.setItem("davbot_userName",userName);
+localStorage.setItem("davbot_userCountry",userCountry);
+document.getElementById("introForm").style.display="none";
+addMessage(`Enchanté ${userName} 👋`,"bot");
+}
+
+function toggleVoice(){audioEnabled=!audioEnabled}
+
+function addMessage(text,type){
+const li=document.createElement("li");
+li.className=type==="user"?"schat":"rchat";
+chatBox.appendChild(li);
+
+if(type==="bot"){
+let i=0;
+avatar.classList.add("talking");
+(function type(){
+if(i<text.length){
+li.textContent+=text[i++];
+setTimeout(type,30);
+}else{
+avatar.classList.remove("talking");
+if(audioEnabled){
+const u=new SpeechSynthesisUtterance(text);
+u.lang="fr-FR";
+speechSynthesis.speak(u);
+}
+}
+})();
+}else{
+li.textContent=text;
+}
+chatBox.scrollTop=chatBox.scrollHeight;
+}
+
+async function sendMessage(){
+if(!txt.value.trim()) return;
+const message=txt.value;
+addMessage(message,"user");
+txt.value="";
+
+try{
+const res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message,userName,userCountry})
+});
+const data=await res.json();
+addMessage(data.reply,"bot");
+}catch{
+addMessage("Erreur serveur.","bot");
+}
+}
+
+/* VOICE */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const recog=SR?new SR():null;
+if(recog){
+recog.lang="fr-FR";
+recog.onresult=e=>{
+recording.style.display="none";
+txt.value=e.results[0][0].transcript;
+sendMessage();
+};
+}
+function startRecording(){
+if(recog){
+recording.style.display="block";
+recog.start();
+}
+}
+</script>
+
+</body>
+</html>
