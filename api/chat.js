@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const DEEPSEEK_API_KEY = "sk-cd57441b19fb4c52877c21b6607ea5bb"; // ⚠️ clé en clair
+  const DEEPSEEK_API_KEY = "sk-27ef492f95df4e3b9a0a322fc40f07a3"; // ⚠️ clé en clair
 
   try {
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
