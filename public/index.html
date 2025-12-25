@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Davbot App</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Nunito",sans-serif}
+body{background:#1c1c1c;color:#fff}
+
+/* INTRO */
+#introForm{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:999;display:flex;align-items:center;justify-content:center}
+#introForm form{background:#222;padding:25px;border-radius:18px;width:90%;max-width:360px}
+#introForm input,#introForm button{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:none}
+#introForm input{background:#333;color:#fff}
+#introForm button{background:linear-gradient(135deg,#00bfff,#0077ff);color:#fff;font-weight:bold}
+
+/* HEADER */
+.topper{background:linear-gradient(135deg,#00bfff,#0077ff);padding:10px;display:flex;align-items:center;gap:10px}
+.icon{width:42px;height:42px;border-radius:50%;background:#000}
+.name{font-size:18px;font-weight:bold}
+.audio-toggle{margin-left:auto;background:#fff;color:#000;border:none;border-radius:8px;padding:6px 10px}
+
+/* CHAT */
+.msgs_cont{height:calc(100vh - 150px);overflow-y:auto;padding:12px}
+li{margin:10px;padding:12px 16px;border-radius:15px;max-width:75%}
+.schat{background:#667eea;margin-left:auto}
+.rchat{background:#38ef7d;color:#000}
+
+/* INPUT */
+.bottom{background:#2a2a2a;padding:10px;position:fixed;bottom:0;width:100%}
+#input{display:flex;gap:5px;background:#333;padding:6px;border-radius:12px}
+#input input{flex:1;background:none;border:none;color:#fff}
+#input button{background:none;border:none;color:#fff;font-size:18px}
+</style>
+</head>
+
+<body>
+
+<div id="introForm">
+<form onsubmit="startChat(event)">
+<h3>Bienvenue sur Davbot</h3>
+<input id="userName" required placeholder="Ton nom">
+<input id="userCountry" required placeholder="Ton pays">
+<button type="submit">Accéder au bot</button>
+</form>
+</div>
+
+<div class="topper">
+<div class="icon"></div>
+<div class="name">Davbot App</div>
+<button class="audio-toggle" onclick="toggleVoice()">🔊</button>
+</div>
+
+<div class="msgs_cont">
+<ul id="list_cont"></ul>
+</div>
+
+<div class="bottom">
+<div id="input">
+<input id="txt" placeholder="Écris ici...">
+<button onclick="sendMessage()">➤</button>
+</div>
+</div>
+
+<script>
+const chatBox=document.getElementById("list_cont");
+const txt=document.getElementById("txt");
+let audioEnabled=true;
+let userName,userCountry;
+
+function startChat(e){
+e.preventDefault();
+userName=document.getElementById("userName").value;
+userCountry=document.getElementById("userCountry").value;
+document.getElementById("introForm").style.display="none";
+addMessage("Enchanté "+userName+" 👋","bot");
+}
+
+function toggleVoice(){audioEnabled=!audioEnabled}
+
+function addMessage(text,type){
+const li=document.createElement("li");
+li.className=type==="user"?"schat":"rchat";
+li.textContent=text;
+chatBox.appendChild(li);
+chatBox.scrollTop=chatBox.scrollHeight;
+if(type==="bot" && audioEnabled){
+const u=new SpeechSynthesisUtterance(text);
+u.lang="fr-FR";
+speechSynthesis.speak(u);
+}
+}
+
+async function sendMessage(){
+if(!txt.value.trim())return;
+const message=txt.value;
+addMessage(message,"user");
+txt.value="";
+
+try{
+const res=await fetch("/api/chat",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({message,userName,userCountry})
+});
+const data=await res.json();
+addMessage(data.reply,"bot");
+}catch{
+addMessage("Erreur serveur","bot");
+}
+}
+</script>
+
+</body>
+</html>
