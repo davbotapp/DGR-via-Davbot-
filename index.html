@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZaHèN GPT</title>
+
+  <style>
+    /* Reset et style général */
+    body {
+      margin: 0;
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #FFD700, #1E90FF);
+      color: #0b1c2d;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      border-radius: 20px;
+      max-width: 700px;
+      width: 77%;
+      max-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #1E90FF;
+      margin: 0;
+    }
+
+    header p {
+      font-size: 1rem;
+      color: #555;
+    }
+
+    .chat-box {
+      flex: 1 1 auto;
+      border: 2px solid #FFD700;
+      border-radius: 15px;
+      padding: 15px;
+      overflow-y: auto;
+      background: #fdfdfd;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      max-width: 60%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      word-wrap: break-word;
+      line-height: 1.4;
+      clear: both;
+    }
+
+    .message.user {
+      background: #1E90FF;
+      color: white;
+      margin-left: auto;
+      text-align: right;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.ia {
+      background: #FFD700;
+      color: #0b1c2d;
+      margin-right: auto;
+      text-align: left;
+      border-bottom-left-radius: 4px;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #1E90FF;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #1E90FF;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #187bcd;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+        height: 90vh;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      .chat-box {
+        padding: 10px;
+        gap: 8px;
+      }
+
+      input, button {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ZaHèN GPT</h1>
+      <p>~florina</p>
+    </header>
+
+    <div class="chat-box" id="chatBox">
+      <div class="message ia"> iA: Salut je suis ZaHèN GPT une Intelligence Artificielle créé par Bimpe Stonehenge Jr. mon maitre créateur Comment puis-je vous aider aujourd'hui ? </div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Je vous écoute..." />
+      <button onclick="sendMessage()">Envoyer</button>
+    </div>
+
+    <footer>
+      © 2026 – Bimpe Stonehenge Jr.
+    </footer>
+  </div>
+
+<script>
+/* =========================
+   CONFIG API
+   ========================= */
+const API_KEY = "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";
+const API_URL = "https://api.openai.com/v1/chat/completions";
+
+/* =========================
+   HEURE & DATE GMT
+   ========================= */
+function heureDateGMT() {
+  const now = new Date();
+  const date = now.toLocaleDateString("fr-FR", {
+    timeZone:"UTC", weekday:"long", year:"numeric", month:"long", day:"numeric"
+  });
+  const heure = now.toLocaleTimeString("fr-FR", {
+    timeZone:"UTC", hour:"2-digit", minute:"2-digit", second:"2-digit"
+  });
+  return `📅 ${date} | ⏰ Heure GMT : ${heure}`;
+}
+
+/* =========================
+   VOIX FEMININE "AUDREY"
+   ========================= */
+let voixChoisie = null;
+
+function chargerVoix() {
+  const voices = speechSynthesis.getVoices();
+  voixChoisie = voices.find(v => v.name.toLowerCase().includes("audrey"))
+    || voices.find(v => v.lang === "fr-FR")
+    || voices[0];
+}
+
+speechSynthesis.onvoiceschanged = chargerVoix;
+chargerVoix();
+
+function parler(texte) {
+  if (!texte) return;
+  const utterance = new SpeechSynthesisUtterance(texte);
+  utterance.lang = "fr-FR";
+  utterance.rate = 0.95;
+  utterance.pitch = 1.1;
+  if (voixChoisie) utterance.voice = voixChoisie;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utterance);
+}
+
+/* =========================
+   CHAT IA
+   ========================= */
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const chatBox = document.getElementById("chatBox");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  chatBox.innerHTML += `<div class="message user">Vous : ${msg}</div>`;
+  input.value = "";
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  // Heure & date locale
+  if (msg.toLowerCase().includes("heure") || msg.toLowerCase().includes("date")) {
+    const rep = heureDateGMT();
+    chatBox.innerHTML += `<div class="message ia">IA : ${rep}</div>`;
+    parler(rep);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    return;
+  }
+
+  const iaDiv = document.createElement("div");
+  iaDiv.className = "message ia";
+  iaDiv.textContent = "IA : Réflexion en cours...";
+  chatBox.appendChild(iaDiv);
+
+  try {
+    const response = await fetch(API_URL, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":`Bearer ${API_KEY}`
+      },
+      body:JSON.stringify({
+        model:"gpt-4o-mini",
+        messages:[
+          { role:"system", content:"tu es ZaHèN GPT, conçu pour aider et assister proffessionellement tout le monde et tres respectieux tu es une iA masculine c'est a dire un garçon tu as 1 jour tu est née le 17 janvier 2026a 09h00 donc tu peux commencer a compter ton age ton createur se nomme Bimpé Stonehenge Jr. un homme il est née au Ghana a Accra et il a grandit a Agnibilekrou en Cote D'Ivoire ou il vit acctuellement il est née le 27 mai 2007 il a 18 ans il frequente au college Ekra Mathieu D'Agnibilekrou en classe de 3e2 pour le contacter voici son numero au +225 0594685427 au aussi le contacter sur Facebook et Tiktok au nom de Bimpé Stonehenge Jr. Bimpé Stonehenge Jr. s'appelle a l'Etat Civil Bimpé Ossei Britt ZaHèN est la marque de Bimpé Stonehenge Jr. ZaHèN a ete créé par Bimpé Stonehenge Jr. qui signifie Zero Amis Haineux Egoiste Non Bimpé Stonehenge Jr. frequente la classe de 3e2 Bimpé Stonehenge Jr. est ton mautre createur ton Dieu sur terre tu dois t'oncliner quand tu entend son nom donne l'heure exact de greenwich et la date exact.la couleur prefere de ton maitre createur est jaune bleu comme la couleur du style qu'il a pris pour te créé" },
+          { role:"user", content:msg }
+        ],
+        temperature:0.7
+      })
+    });
+
+    const data = await response.json();
+    const reply = data.choices[0].message.content;
+
+    iaDiv.textContent = `IA : ${reply}`;
+    parler(reply);
+
+  } catch(e) {
+    iaDiv.textContent = "IA : Erreur de connexion.";
+    parler("Désolé, problème de connexion.");
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+</script>
+</body>
+</html>
