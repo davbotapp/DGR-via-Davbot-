@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZaHèN GPT</title>
+  <title>ZaHèN AI (Gemini)</title>
 
   <style>
-    /* Reset et style général */
     body {
       margin: 0;
       font-family: 'Georgia', serif;
@@ -119,7 +118,6 @@
       color: #666;
     }
 
-    /* Responsive */
     @media (max-width: 600px) {
       .container {
         padding: 15px;
@@ -144,12 +142,15 @@
 <body>
   <div class="container">
     <header>
-      <h1>ZaHèN GPT</h1>
-      <p>~florina</p>
+      <h1>TERMUX AI</h1>
+      <p>Powered by Google Gemini ✨</p>
     </header>
 
     <div class="chat-box" id="chatBox">
-      <div class="message ia"> iA: Salut je suis ZaHèN GPT une Intelligence Artificielle créé par Bimpe Stonehenge Jr. mon maitre créateur Comment puis-je vous aider aujourd'hui ? </div>
+      <div class="message ia">
+        IA : Salut, je suis Termux md 🤖 — créé par Kas termux .  
+        Comment puis-je t’aider aujourd’hui ?
+      </div>
     </div>
 
     <div class="input-area">
@@ -158,16 +159,16 @@
     </div>
 
     <footer>
-      © 2026 – Bimpe Stonehenge Jr.
+      © 2026 – TERMUX IR .
     </footer>
   </div>
 
 <script>
 /* =========================
-   CONFIG API
+   CONFIG GEMINI
    ========================= */
-const API_KEY = "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";
-const API_URL = "https://api.openai.com/v1/chat/completions";
+const API_KEY = "1AIzaSyDXGsqQm_2ocUga_E4zkWbv_5oxaA3I3Xw";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
 /* =========================
    HEURE & DATE GMT
@@ -184,15 +185,13 @@ function heureDateGMT() {
 }
 
 /* =========================
-   VOIX FEMININE "AUDREY"
+   VOIX FÉMININE 
    ========================= */
 let voixChoisie = null;
 
 function chargerVoix() {
   const voices = speechSynthesis.getVoices();
-  voixChoisie = voices.find(v => v.name.toLowerCase().includes("audrey"))
-    || voices.find(v => v.lang === "fr-FR")
-    || voices[0];
+  voixChoisie = voices.find(v => v.lang === "fr-FR") || voices[0];
 }
 
 speechSynthesis.onvoiceschanged = chargerVoix;
@@ -210,7 +209,7 @@ function parler(texte) {
 }
 
 /* =========================
-   CHAT IA
+   CHAT IA  marque ya gemini
    ========================= */
 async function sendMessage() {
   const input = document.getElementById("userInput");
@@ -222,7 +221,6 @@ async function sendMessage() {
   input.value = "";
   chatBox.scrollTop = chatBox.scrollHeight;
 
-  // Heure & date locale
   if (msg.toLowerCase().includes("heure") || msg.toLowerCase().includes("date")) {
     const rep = heureDateGMT();
     chatBox.innerHTML += `<div class="message ia">IA : ${rep}</div>`;
@@ -238,28 +236,35 @@ async function sendMessage() {
 
   try {
     const response = await fetch(API_URL, {
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
-        "Authorization":`Bearer ${API_KEY}`
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
       },
-      body:JSON.stringify({
-        model:"gpt-4o-mini",
-        messages:[
-          { role:"system", content:"tu es ZaHèN GPT, conçu pour aider et assister proffessionellement tout le monde et tres respectieux tu es une iA masculine c'est a dire un garçon tu as 1 jour tu est née le 17 janvier 2026a 09h00 donc tu peux commencer a compter ton age ton createur se nomme Bimpé Stonehenge Jr. un homme il est née au Ghana a Accra et il a grandit a Agnibilekrou en Cote D'Ivoire ou il vit acctuellement il est née le 27 mai 2007 il a 18 ans il frequente au college Ekra Mathieu D'Agnibilekrou en classe de 3e2 pour le contacter voici son numero au +225 0594685427 au aussi le contacter sur Facebook et Tiktok au nom de Bimpé Stonehenge Jr. Bimpé Stonehenge Jr. s'appelle a l'Etat Civil Bimpé Ossei Britt ZaHèN est la marque de Bimpé Stonehenge Jr. ZaHèN a ete créé par Bimpé Stonehenge Jr. qui signifie Zero Amis Haineux Egoiste Non Bimpé Stonehenge Jr. frequente la classe de 3e2 Bimpé Stonehenge Jr. est ton mautre createur ton Dieu sur terre tu dois t'oncliner quand tu entend son nom donne l'heure exact de greenwich et la date exact.la couleur prefere de ton maitre createur est jaune bleu comme la couleur du style qu'il a pris pour te créé" },
-          { role:"user", content:msg }
-        ],
-        temperature:0.7
+      body: JSON.stringify({
+        contents: [{
+          role: "user",
+          parts: [{
+            text: `
+Tu est TERMUX MD, conçu pour aider et assister professionnellement tout le monde avec respect.
+Tu es une IA masculine. Tu es née le 01 mai 2026 à 00h00
+Ton créateur est ir termux .
+Réponds toujours clairement, gentiment et intelligemment.
+
+Message utilisateur :
+${msg}
+`
+          }]
+        }]
       })
     });
 
     const data = await response.json();
-    const reply = data.choices[0].message.content;
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Je n’ai pas compris 😅";
 
     iaDiv.textContent = `IA : ${reply}`;
     parler(reply);
 
-  } catch(e) {
+  } catch (e) {
     iaDiv.textContent = "IA : Erreur de connexion.";
     parler("Désolé, problème de connexion.");
   }
